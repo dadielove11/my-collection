@@ -993,6 +993,26 @@ async function syncFromCloud(quiet=false){
 
 window.addEventListener('beforeunload',e=>{if(_dirty&&gistConfig.token){e.preventDefault();e.returnValue=''}});
 setInterval(()=>{if(!_dirty)refreshSyncStatus()},60000);
+
+let _lastRemoteCheck=0;
+async function checkRemoteUpdates(){
+  if(!gistConfig.token||!gistConfig.gistId)return;
+  if(document.getElementById('syncStatus').classList.contains('syncing'))return;
+  const now=Date.now();
+  if(now-_lastRemoteCheck<55000)return;
+  _lastRemoteCheck=now;
+  try{
+    const r=await fetch(`https://api.github.com/gists/${gistConfig.gistId}`,{headers:{Authorization:`token ${gistConfig.token}`,'X-GitHub-Api-Version':'2022-11-28'}});
+    if(!r.ok)return;
+    const d=await r.json();
+    const remoteTs=new Date(d.updated_at).getTime();
+    const lastSync=parseInt(localStorage.getItem('mycollection_last_sync')||'0');
+    if(remoteTs>lastSync)syncFromCloud(true);
+  }catch{}
+}
+setInterval(checkRemoteUpdates,60000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkRemoteUpdates()});
+
 initTheme();
 Promise.all([
   loadData(),
@@ -1002,6 +1022,7 @@ Promise.all([
   migrateFromLocal();
   refreshSyncStatus();
   if(gistConfig.token&&gistConfig.gistId)syncFromCloud(true);
+  _lastRemoteCheck=Date.now();
 });
 </script>
 <div class="modal-overlay" id="microConfirmModal" onmousedown="if(event.target===this)_microConfirmResolve&&_microConfirmResolve(false)">
