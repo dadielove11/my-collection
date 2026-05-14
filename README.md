@@ -1,30 +1,64 @@
+<div align="center">
+
 # MyCollection
 
-个人知识收藏工具 — 收集和检索浏览中遇到的 AI 工具、技巧、链接、指令等碎片信息。
+**个人知识收藏夹 — 收集一切值得留下的东西**
 
-## 使用
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-在线体验-d97757?style=for-the-badge)](https://dadielove11.github.io/my-collection/)
+[![Single File](https://img.shields.io/badge/Single%20File-零依赖-5e5d59?style=for-the-badge)](#)
+[![License](https://img.shields.io/badge/License-MIT-87867f?style=for-the-badge)](#)
 
-直接用浏览器打开 `index.html` 即可，无需安装任何依赖。
+<br>
 
-首次使用可选择一个本地 JSON 文件作为数据存储位置，也可以跳过直接配置 GitHub Gist 使用云端模式（数据存储在 Gist，无需本地文件）。
+> 粘贴链接、指令、技巧、截图……一个 `index.html`，无需安装，打开即用。  
+> 通过 GitHub Gist 同步，手机电脑随时随地访问。
 
-## 功能
+</div>
 
-- **快速粘贴录入** — 顶部输入框，Enter 即保存，Shift+Enter 换行
-- **全文搜索** — 搜索标题、内容、标签
-- **侧边栏导航** — 快速筛选（全部/置顶/含图片/最近7天）+ 标签列表 + 统计
-- **网格/列表视图** — stats 栏切换，宽屏下 2 列卡片展示
-- **标签分类** — 预设标签 + 自动学习新标签
-- **置顶** — 重要条目固定在顶部
-- **复制** — 一键复制条目内容
-- **图片** — 支持拖拽、粘贴上传；自动压缩到最长边 900px
-- **URL 标题抓取** — 粘贴链接后点击「抓取标题」自动填入
-- **Markdown 渲染** — 支持代码块、行内代码、粗体、斜体、列表
-- **批量操作** — 多选后批量打标签（支持添加/移除现有标签）或批量删除
-- **云同步** — 通过 GitHub Gist 在多台电脑间同步（见下方）
-- **未同步提示** — 有未推送更改时头部出现「↑ 点击同步」胶囊，可直接点击上传
-- **暗色模式** — 自动跟随系统或手动切换
-- **导入/导出** — JSON 格式，方便备份和迁移
+---
+
+## 快速开始
+
+### 第一步：打开应用
+
+直接访问 **[https://dadielove11.github.io/my-collection/](https://dadielove11.github.io/my-collection/)**，或将 `index.html` 下载到本地用浏览器打开。
+
+### 第二步：配置云同步（强烈建议）
+
+没有同步，数据只存在当前浏览器。**手机使用必须配置。**
+
+1. 前往 [GitHub Token 生成页](https://github.com/settings/tokens/new)，勾选 **`gist`** 权限，生成 token
+2. 点击右上角 **`⋯`** 菜单 → **同步设置**，填入 token
+3. 点击菜单 → **同步到云端 ↑**，首次会自动创建私有 Gist
+4. 在其他设备：填入同一 token + Gist ID，点击**从云端同步 ↓**
+
+> Gist ID 推送后在「同步设置」里查看，也是 `gist.github.com` 页面 URL 末尾的字符串。
+
+### 第三步：开始收藏
+
+- 顶部输入框快速粘贴，`Enter` 保存
+- 或点击右上角 **`+ 新增`** 填写完整信息（标题、内容、备注、标签、图片、附件）
+
+---
+
+## 功能一览
+
+| | 功能 | 说明 |
+|---|---|---|
+| ⚡ | **快速录入** | 顶部输入框，`Enter` 即保存，`Shift+Enter` 换行 |
+| 🔍 | **全文搜索** | 实时匹配标题、内容、标签 |
+| 🏷️ | **标签系统** | 预设 + 自定义标签，侧边栏一键筛选 |
+| 📌 | **置顶** | 重要条目固定在最顶部 |
+| 🖼️ | **图片** | 拖拽 / 粘贴上传，自动压缩，支持 `Ctrl+V` |
+| 📎 | **文件附件** | 附加任意文件（≤ 500 KB），点击直接下载 |
+| 🔗 | **标题抓取** | 粘贴链接后一键获取页面标题 |
+| ✍️ | **Markdown** | 支持代码块、粗体、斜体、列表、行内代码 |
+| ☁️ | **云同步** | GitHub Gist 私有存储，多端实时同步 |
+| 📦 | **批量操作** | 多选后批量打标签或删除 |
+| 🌙 | **暗色模式** | 自动跟随系统，支持手动切换 |
+| 💾 | **导入/导出** | JSON 格式备份，支持合并导入 |
+
+---
 
 ## 快捷键
 
@@ -32,29 +66,38 @@
 |------|------|
 | `Ctrl+N` | 新增收藏 |
 | `/` | 聚焦搜索框 |
+| `Enter` | 快速保存（在顶部输入框中） |
 | `Esc` | 关闭弹窗 |
 
-## 多端同步（GitHub Gist）
+---
 
-点击右上角菜单 → **同步设置**，填入 GitHub Personal Access Token（需要 `gist` 权限）即可。
+## 多设备使用说明
 
-1. **生成 Token**：GitHub → Settings → Developer settings → Personal access tokens → 勾选 `gist`
-2. **电脑 A**：填入 Token → 点「同步到云端 ↑」，自动创建私有 Gist
-3. **电脑 B**：填入同一 Token + Gist ID → 点「从云端同步 ↓」
+| 场景 | 方法 |
+|------|------|
+| 电脑 A → 电脑 B | 两台电脑填同一 Token + Gist ID |
+| 手机使用 | 手机浏览器打开网址，配置同一 Gist，不需要本地文件 |
+| 分享给他人 | 对方打开网址后配置自己的 Gist，数据互相独立 |
 
-Gist ID 在推送后可从菜单「同步设置」里复制，也可以在 `gist.github.com` 查看 URL 末尾的字符串。
+**同步行为：**
+- 启动时自动静默拉取
+- 有改动时头部显示橙色 **↑ 点击同步** 胶囊，点击立即推送
+- 90 秒内无新改动自动静默推送
+- 合并规则：以修改时间较新的版本为准，两端独立新增的条目都保留
 
-每次启动会自动静默拉取云端数据。合并策略：以 `updatedAt` 为准取较新版本，两端独立新增的条目都保留。
-
-有改动未推送时，头部会显示橙色「↑ 点击同步」胶囊；90 秒内无新改动会自动静默推送。关闭页面时若有未同步更改，浏览器会弹出确认。
+---
 
 ## 数据存储
 
-支持两种模式：
+两种模式可混用：
 
-- **本地文件模式**：点击头部文件标签，通过 `showOpenFilePicker` 选择本地 JSON 文件。文件句柄通过 IndexedDB 跨会话持久化，重启浏览器后自动恢复。
-- **云端模式**：配置 Gist 后可不选本地文件，数据完全通过 Gist 同步。头部显示「云端模式」标签。
+- **本地文件模式**：点击头部文件标签，选择本地 `.json` 文件，关闭浏览器后自动恢复
+- **云端模式**：配置 Gist 后无需本地文件，数据完全存在云端，适合手机或多设备场景
 
-## 技术
+---
 
-纯 HTML + CSS + JavaScript，单文件，零依赖。字体使用 Google Fonts（Source Serif 4 / DM Sans / JetBrains Mono）。
+<div align="center">
+
+纯 HTML + CSS + JavaScript · 单文件零依赖 · [Source Serif 4](https://fonts.google.com/specimen/Source+Serif+4) / [DM Sans](https://fonts.google.com/specimen/DM+Sans) / [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono)
+
+</div>
