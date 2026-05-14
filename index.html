@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyCollection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  /* Claude-aligned warm neutrals */
+  --bg:#faf9f5;--surface:#fff;--surface-2:#f5f4ed;--surface-3:#f0eee6;
+  --ink:#141413;--ink-2:#5e5d59;--ink-3:#87867f;--ink-4:#b0aea5;
+  /* Claude brand accent */
+  --accent:#d97757;--accent-h:#c96442;--accent-soft:rgba(217,119,87,.08);--accent-ring:rgba(217,119,87,.18);
+  --tag:#e8e6dc;--tag-h:#dedcd1;--tag-text:#5e5d59;
+  --danger:#b53333;--danger-bg:rgba(181,51,51,.06);
+  --pin:#c9982f;--pin-bg:rgba(201,152,47,.06);
+  --border:#e8e6dc;--border-2:#d1cfc5;
+  --r:16px;--rs:12px;--rx:8px;
+  --shadow-sm:0 1px 3px rgba(20,20,19,.04);
+  --shadow-md:0 4px 16px rgba(20,20,19,.06);
+  --shadow-lg:0 12px 40px rgba(20,20,19,.08);
+  --grain:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+}
+.dark{
+  --bg:#141413;--surface:#1a1918;--surface-2:#1f1e1d;--surface-3:#262624;
+  --ink:#f0eee6;--ink-2:#b0aea5;--ink-3:#73726c;--ink-4:#4d4c48;
+  --accent:#e8946e;--accent-h:#d97757;--accent-soft:rgba(232,148,110,.1);--accent-ring:rgba(232,148,110,.2);
+  --tag:#262624;--tag-h:#30302e;--tag-text:#9c9a92;
+  --danger:#e07070;--danger-bg:rgba(224,112,112,.08);
+  --pin:#d4a843;--pin-bg:rgba(212,168,67,.08);
+  --border:#30302e;--border-2:#3d3d3a;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.2);
+  --shadow-md:0 4px 16px rgba(0,0,0,.25);
+  --shadow-lg:0 12px 40px rgba(0,0,0,.3);
+  --grain:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+}
+
+body{
+  font-family:'DM Sans','Noto Sans SC',system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background-image:var(--grain);background-size:200px 200px;
+  min-height:100vh;line-height:1.5;
+}
+
+.container{max-width:1120px;margin:0 auto;padding:40px 28px 80px}
+
+.ambient{position:fixed;top:0;left:0;right:0;height:320px;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 80% 60% at 20% -10%,var(--accent-soft),transparent),
+             radial-gradient(ellipse 60% 40% at 80% 0%,rgba(201,152,47,.04),transparent);
+}
+
+.header{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:36px;padding-bottom:20px}
+.header-left{display:flex;align-items:baseline;gap:14px}
+.header h1{
+  font-family:'Source Serif 4',Georgia,serif;font-size:30px;font-weight:400;
+  letter-spacing:-.6px;line-height:1;color:var(--ink);
+}
+.file-tag{
+  font-size:10px;font-weight:600;color:var(--ink-3);
+  background:var(--surface-2);padding:3px 10px;border-radius:6px;
+  cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.8px;
+  border:1px solid var(--border);
+}
+.file-tag:hover{background:var(--surface-3);color:var(--ink-2);border-color:var(--border-2)}
+.file-tag.missing{background:var(--accent-soft);color:var(--accent);border:1px dashed var(--accent)}
+.file-tag.cloud-mode{background:rgba(217,119,87,.05);color:var(--ink-3);border:1px solid var(--border)}
+.sync-status.dirty{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-ring);border-radius:6px;padding:2px 9px;cursor:pointer;transition:all .15s;font-weight:600}
+.sync-status.dirty:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.header-right{display:flex;align-items:center;gap:8px}
+.btn-add{
+  background:var(--ink);color:var(--bg);border:none;border-radius:var(--rs);
+  padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:inherit;letter-spacing:.2px;
+}
+.btn-add:hover{background:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.icon-btn{
+  background:none;border:1.5px solid var(--border);border-radius:var(--rs);
+  padding:8px 11px;cursor:pointer;font-size:14px;color:var(--ink-3);
+  transition:all .15s;line-height:1;font-family:inherit;
+}
+.icon-btn:hover{background:var(--surface-2);border-color:var(--border-2);color:var(--ink-2)}
+
+.menu-wrap{position:relative}
+.menu{
+  display:none;position:absolute;right:0;top:100%;margin-top:8px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);
+  box-shadow:var(--shadow-lg);min-width:160px;z-index:50;overflow:hidden;
+  padding:4px;
+}
+.menu.open{display:block;animation:menuIn .15s ease}
+@keyframes menuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.menu-item{
+  display:block;width:100%;padding:9px 14px;border:none;background:none;
+  text-align:left;font-size:13px;font-weight:500;color:var(--ink-2);cursor:pointer;
+  font-family:inherit;transition:all .12s;border-radius:8px;
+}
+.menu-item:hover{background:var(--surface-2);color:var(--ink)}
+.menu-sep{height:1px;background:var(--border);margin:4px 8px}
+
+.quick-capture{margin-bottom:16px;position:relative}
+.quick-capture textarea{
+  width:100%;padding:14px 72px 14px 18px;
+  border:1.5px solid var(--border);border-radius:var(--r);
+  font-size:13.5px;outline:none;transition:all .25s;
+  background:var(--surface);color:var(--ink);font-family:inherit;
+  resize:none;height:48px;line-height:1.5;overflow:hidden;
+  box-shadow:var(--shadow-sm);
+}
+.quick-capture textarea:focus{
+  border-color:var(--accent);height:84px;overflow:auto;
+  box-shadow:0 0 0 3px var(--accent-ring),var(--shadow-sm);
+}
+.quick-capture textarea::placeholder{color:var(--ink-4);font-style:italic}
+.quick-capture-actions{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;gap:4px}
+.quick-capture textarea:focus~.quick-capture-actions{top:16px;transform:none}
+.btn-ghost{
+  background:none;border:none;padding:5px 10px;border-radius:var(--rx);
+  cursor:pointer;font-size:12px;font-weight:600;color:var(--ink-3);
+  transition:all .15s;font-family:inherit;
+}
+.btn-ghost:hover{background:var(--surface-2);color:var(--ink-2)}
+
+.search-bar{margin-bottom:20px;position:relative}
+.search-bar input{
+  width:100%;padding:12px 16px 12px 44px;
+  border:1.5px solid var(--border);border-radius:var(--r);
+  font-size:14px;outline:none;transition:all .25s;
+  background:var(--surface);color:var(--ink);font-family:inherit;
+  box-shadow:var(--shadow-sm);
+}
+.search-bar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring),var(--shadow-sm)}
+.search-bar input::placeholder{color:var(--ink-4)}
+.search-bar .search-icon{
+  position:absolute;left:15px;top:50%;transform:translateY(-50%);
+  font-size:16px;color:var(--ink-4);pointer-events:none;
+}
+
+.tags-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;min-height:30px}
+.tag-chip{
+  display:inline-flex;align-items:center;padding:4px 12px;
+  border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;
+  background:var(--tag);color:var(--tag-text);transition:all .15s;
+  user-select:none;line-height:1.4;letter-spacing:.3px;
+  border:1px solid transparent;
+}
+.tag-chip:hover{background:var(--tag-h);border-color:var(--border-2)}
+.tag-chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.stats-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:14px;padding:0 2px;
+}
+.stats{font-size:11px;color:var(--ink-3);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.stats-right{display:flex;gap:12px}
+.stat-item{font-size:11px;color:var(--ink-3);font-weight:500;display:flex;align-items:center;gap:4px}
+.stat-item .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.stat-item .dot.accent{background:var(--accent)}
+.stat-item .dot.pin{background:var(--pin)}
+
+.entries{display:flex;flex-direction:column;gap:8px}
+.entry{
+  background:var(--surface);border-radius:var(--r);padding:18px 22px;
+  border:1px solid var(--border);transition:all .25s;cursor:pointer;
+  position:relative;overflow:hidden;
+  animation:cardIn .4s cubic-bezier(.23,1,.32,1) both;
+  box-shadow:var(--shadow-sm);
+}
+.entry::before{
+  content:'';position:absolute;top:0;left:0;width:3px;height:0;
+  background:var(--accent);transition:height .25s cubic-bezier(.23,1,.32,1);
+  border-radius:0 0 3px 0;
+}
+.entry:hover{
+  border-color:var(--border-2);transform:translateY(-1px);
+  box-shadow:var(--shadow-md);
+}
+.entry:hover::before{height:100%}
+.entry.pinned{border-left:3px solid var(--pin);background:var(--pin-bg)}
+.entry.pinned::before{display:none}
+.entry.pinned:hover{background:var(--pin-bg)}
+.entry-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.entry-title{
+  font-family:'Source Serif 4',Georgia,serif;font-size:16.5px;font-weight:400;
+  color:var(--ink);line-height:1.4;
+}
+.entry-meta{
+  font-size:10px;font-weight:600;color:var(--ink-4);white-space:nowrap;
+  margin-left:16px;margin-top:3px;letter-spacing:.4px;text-transform:uppercase;
+}
+.entry-content{
+  font-size:13.5px;color:var(--ink-2);line-height:1.75;margin-bottom:10px;
+  white-space:pre-wrap;word-break:break-all;max-height:80px;overflow:hidden;
+  position:relative;
+}
+.entry-content.expanded{max-height:none}
+.entry-content:not(.expanded)::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:30px;
+  background:linear-gradient(transparent,var(--surface));pointer-events:none;
+}
+.entry.pinned .entry-content:not(.expanded)::after{background:linear-gradient(transparent,var(--pin-bg))}
+.entry-content a{
+  color:var(--accent);text-decoration:none;font-weight:500;
+  border-bottom:1px solid var(--accent-soft);transition:border-color .15s;
+}
+.entry-content a:hover{border-color:var(--accent)}
+.entry-notes{
+  font-size:12.5px;color:var(--ink-3);line-height:1.65;
+  padding:8px 12px;margin-bottom:8px;
+  background:var(--surface-2);border-radius:var(--rx);
+  border-left:2px solid var(--accent);
+  white-space:pre-wrap;word-break:break-all;
+}
+.entry-notes::before{content:'备注 · ';font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+.entry-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.entry-tags .tag-chip{font-size:10px;padding:2px 8px;cursor:default;letter-spacing:0;font-weight:600}
+.entry-image{
+  max-width:100%;max-height:240px;border-radius:var(--rx);margin:8px 0;
+  display:block;border:1px solid var(--border);
+}
+.entry-files{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.file-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-2);cursor:pointer;transition:all .15s;max-width:200px;user-select:none}
+.file-chip:hover{background:var(--surface-3);border-color:var(--border-2);color:var(--ink)}
+.file-chip-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-files-list{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.modal-file-item{display:flex;align-items:center;padding:6px 10px;border-radius:var(--rx);background:var(--surface-2);border:1px solid var(--border);font-size:12px;gap:8px}
+.modal-file-item .mfi-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-2)}
+.modal-file-item .mfi-size{font-size:10.5px;color:var(--ink-4);flex-shrink:0}
+.entry-actions{
+  display:flex;gap:2px;justify-content:flex-end;
+  opacity:0;transition:all .2s;transform:translateY(4px);
+}
+.entry:hover .entry-actions{opacity:1;transform:translateY(0)}
+.entry-actions .btn-ghost{font-size:11px;padding:4px 8px}
+.pin-btn{font-size:13px}
+.pin-btn.active{color:var(--pin)}
+.copy-btn.copied{color:#5a9a5a!important}
+
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.empty{text-align:center;padding:80px 20px}
+.empty-icon{font-size:40px;margin-bottom:16px;opacity:.15}
+.empty p{
+  font-size:15px;color:var(--ink-3);
+  font-family:'Source Serif 4',Georgia,serif;font-style:italic;
+}
+
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(20,20,19,.35);backdrop-filter:blur(8px);
+  z-index:100;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:overlayIn .2s ease}
+@keyframes overlayIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--surface);border-radius:20px;padding:32px;
+  width:92%;max-width:540px;max-height:90vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);border:1px solid var(--border);
+  animation:modalIn .3s cubic-bezier(.23,1,.32,1);
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal h2{
+  font-family:'Source Serif 4',Georgia,serif;font-size:22px;font-weight:400;
+  margin-bottom:24px;color:var(--ink);letter-spacing:-.3px;
+}
+.form-group{margin-bottom:18px}
+.form-group label{
+  display:block;font-size:11px;font-weight:600;margin-bottom:7px;
+  color:var(--ink-2);text-transform:uppercase;letter-spacing:.8px;
+}
+.form-group input,.form-group textarea{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--rs);
+  font-size:14px;outline:none;font-family:inherit;background:var(--surface-2);
+  color:var(--ink);transition:all .2s;
+}
+.form-group input:focus,.form-group textarea:focus{
+  border-color:var(--accent);background:var(--surface);
+  box-shadow:0 0 0 3px var(--accent-ring);
+}
+.form-group input::placeholder,.form-group textarea::placeholder{color:var(--ink-4)}
+.form-group textarea{resize:vertical;min-height:100px;line-height:1.6}
+.form-hint{font-size:11px;color:var(--accent);margin-top:5px;font-weight:500}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:24px}
+.image-preview{
+  max-width:100%;max-height:180px;border-radius:var(--rx);margin-top:8px;
+  border:1px solid var(--border);
+}
+.drop-zone{
+  border:1.5px dashed var(--border);border-radius:var(--r);padding:24px;
+  text-align:center;color:var(--ink-3);font-size:13px;cursor:pointer;
+  transition:all .2s;background:var(--surface-2);
+}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tag-selector{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px}
+.tag-selector .tag-chip{font-size:11px;cursor:pointer;letter-spacing:0}
+.tag-selector .tag-chip.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tag-selector .tag-chip.selected::after{content:' ✓';font-size:10px}
+.tag-chip.chip-add{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tag-chip.chip-add::after{content:' ✓';font-size:10px}
+.tag-chip.chip-remove{background:var(--danger);color:#fff;border-color:var(--danger);text-decoration:line-through}
+.tag-chip.chip-all{border-color:var(--accent);color:var(--accent)}
+.tag-chip.chip-partial{border-style:dashed;opacity:.75}
+.tag-section-label{
+  font-size:10px;color:var(--ink-3);margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:1px;font-weight:700;
+}
+.tag-custom-input{margin-top:8px}
+#selectedTagsPreview{margin-top:8px}
+#selectedTagsPreview .tag-chip{
+  background:var(--accent-soft);color:var(--accent);
+  border:1px solid var(--accent-ring);cursor:pointer;letter-spacing:0;
+}
+#selectedTagsPreview .tag-chip.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn{
+  padding:9px 22px;border:none;border-radius:var(--rs);font-size:13px;
+  font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;letter-spacing:.2px;
+}
+.btn-primary{background:var(--ink);color:var(--bg)}.btn-primary:hover{background:var(--accent)}
+.btn-secondary{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--border)}.btn-secondary:hover{background:var(--surface-3)}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border-2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-3)}
+
+.kbd{
+  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:1px 5px;background:var(--surface-2);border:1px solid var(--border);
+  border-radius:4px;color:var(--ink-3);font-weight:500;line-height:1.6;
+}
+
+.footer{
+  text-align:center;padding:40px 20px 0;
+  font-size:11px;color:var(--ink-4);font-weight:500;
+  letter-spacing:.3px;
+}
+.footer .kbd{margin:0 2px}
+
+.sync-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:var(--bg);padding:10px 20px;
+  border-radius:var(--rs);font-size:13px;font-weight:500;
+  box-shadow:var(--shadow-lg);z-index:200;opacity:0;
+  transition:opacity .3s;pointer-events:none;
+}
+.sync-toast.show{opacity:1}
+.sync-toast.error{background:var(--danger)}
+
+.section-label{
+  font-size:11px;font-weight:700;color:var(--ink-3);text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:10px;padding-left:2px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* App body layout */
+.app-body{display:flex;gap:20px;align-items:flex-start}
+.sidebar{width:188px;flex-shrink:0;position:sticky;top:24px;max-height:calc(100vh - 80px);overflow-y:auto}
+.main-area{flex:1;min-width:0}
+
+/* Sidebar filters */
+.sidebar-filter{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:var(--rx);font-size:12.5px;font-weight:500;color:var(--ink-2);cursor:pointer;transition:all .12s;width:100%;background:none;border:none;text-align:left;font-family:inherit;margin-bottom:1px}
+.sidebar-filter:hover{background:var(--surface-2);color:var(--ink)}
+.sidebar-filter.active{background:var(--accent-soft);color:var(--accent)}
+.sidebar-filter .tag-count{font-size:10.5px;color:var(--ink-4);font-weight:600}
+.sidebar-filter.active .tag-count{color:var(--accent)}
+.sidebar-divider{height:1px;background:var(--border);margin:10px 4px}
+.sidebar-section-label{font-size:10px;font-weight:700;color:var(--ink-4);text-transform:uppercase;letter-spacing:1px;margin:12px 0 6px;padding:0 10px}
+
+/* Sidebar tags overrides */
+.sidebar .tags-bar{flex-direction:column;flex-wrap:nowrap;gap:1px;margin-bottom:0;min-height:0}
+.sidebar .tag-chip{width:100%;display:flex;justify-content:space-between;align-items:center;padding:5px 10px;border-radius:var(--rx);font-size:12px;letter-spacing:0}
+.tag-count{color:var(--ink-4);font-size:10.5px;font-weight:600;flex-shrink:0}
+.sidebar .tag-chip.active .tag-count{color:rgba(255,255,255,.65)}
+
+/* Sidebar stats */
+.sidebar-stat-row{display:flex;justify-content:space-between;padding:4px 10px;font-size:11px;color:var(--ink-3);font-weight:500}
+.sidebar-stat-row span:last-child{font-weight:700;color:var(--ink-2)}
+
+/* Grid view */
+.entries.grid{display:grid;grid-template-columns:repeat(2,1fr)}
+.entries.grid .entry{animation:none}
+.entries.grid .entry-content{max-height:60px}
+.entries.grid .entry-notes{display:none}
+.entries.grid .entry-image{max-height:120px}
+
+/* Responsive: collapse sidebar below 860px */
+@media(max-width:860px){
+  .app-body{flex-direction:column;gap:0}
+  .sidebar{width:100%;position:static;max-height:none;overflow-y:visible;margin-bottom:12px}
+  .sidebar .tags-bar{flex-direction:row;flex-wrap:wrap;gap:6px}
+  .sidebar .tag-chip{width:auto;display:inline-flex}
+  #sidebarQuickFilters{display:flex;flex-wrap:wrap;gap:4px}
+  .sidebar-filter{display:inline-flex;width:auto;padding:4px 10px}
+  .sidebar-divider,.sidebar-stat-row,.sidebar-section-label{display:none}
+  .entries.grid{grid-template-columns:1fr}
+}
+
+.inline-code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--accent)}
+.md-pre{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--rx);padding:12px 14px;margin:6px 0;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.6;white-space:pre}
+.entry-content li{margin-left:18px;display:list-item;list-style-type:disc}
+.sync-status{font-size:10px;color:var(--ink-4);font-weight:500;letter-spacing:.2px;transition:color .2s}
+.sync-status.syncing{color:var(--accent)}
+.bulk-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:var(--rs);font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);z-index:150;align-items:center;gap:12px;display:none}
+.bulk-bar.show{display:flex}
+.bulk-bar-btn{background:rgba(255,255,255,.15);border:none;color:inherit;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.bulk-bar-btn:hover{background:rgba(255,255,255,.25)}
+.bulk-bar-btn.danger{background:rgba(181,51,51,.5)}.bulk-bar-btn.danger:hover{background:rgba(181,51,51,.7)}
+.bulk-bar-btn:disabled{opacity:.35;cursor:not-allowed}
+.bulk-mode .entry-actions{display:none!important}
+.entry-cb{position:absolute;top:16px;left:14px;width:16px;height:16px;accent-color:var(--accent);cursor:pointer;z-index:5;display:none}
+.bulk-mode .entry-cb{display:block}
+.bulk-mode .entry{padding-left:38px;cursor:pointer}
+.entry.selected{border-color:var(--accent)!important;background:var(--accent-soft)!important}
+.entry.pinned.selected{background:color-mix(in srgb,var(--pin-bg),var(--accent-soft))!important}
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+<div class="container">
+  <div class="header">
+    <div class="header-left">
+      <h1>MyCollection</h1>
+      <span class="file-tag" id="fileTag" onclick="chooseFile()" title="点击切换数据文件">未连接</span>
+      <span class="sync-status" id="syncStatus" onclick="if(_dirty)syncToCloud()"></span>
+    </div>
+    <div class="header-right">
+      <div class="menu-wrap">
+        <button class="icon-btn" onclick="toggleMenu(event)" id="menuBtn">⋯</button>
+        <div class="menu" id="menu">
+          <button class="menu-item" onclick="syncToCloud();closeMenu()" id="syncPushBtn">同步到云端 ↑</button>
+          <button class="menu-item" onclick="syncFromCloud();closeMenu()" id="syncPullBtn">从云端同步 ↓</button>
+          <button class="menu-item" onclick="openGistModal();closeMenu()">同步设置</button>
+          <div class="menu-sep"></div>
+          <button class="menu-item" onclick="exportData();closeMenu()">导出数据</button>
+          <button class="menu-item" onclick="document.getElementById('importFile').click();closeMenu()">导入数据</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+          <div class="menu-sep"></div>
+          <button class="menu-item" onclick="toggleTheme();closeMenu()" id="themeText">切换暗色</button>
+        </div>
+      </div>
+      <button class="btn-add" onclick="openModal()">+ 新增</button>
+    </div>
+  </div>
+
+  <div class="quick-capture">
+    <textarea id="quickInput" placeholder="快速粘贴录入…" onkeydown="quickCaptureKey(event)"></textarea>
+    <div class="quick-capture-actions"><button class="btn-ghost" onclick="quickSave()">保存</button></div>
+  </div>
+
+  <div class="search-bar">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="搜索内容、标签…" oninput="renderEntries()">
+  </div>
+
+  <div class="app-body">
+    <aside class="sidebar">
+      <div id="sidebarQuickFilters"></div>
+      <div id="sidebarTagsSection">
+        <div class="sidebar-section-label">标签</div>
+        <div class="tags-bar" id="tagsBar"></div>
+      </div>
+      <div id="sidebarStats"></div>
+    </aside>
+    <div class="main-area">
+      <div class="stats-bar" id="statsBar"></div>
+      <div class="entries" id="entries"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="kbd">Ctrl+N</span> 新增 · <span class="kbd">/</span> 搜索 · <span class="kbd">Esc</span> 关闭
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal" onmousedown="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2 id="modalTitle">新增收藏</h2>
+    <input type="hidden" id="editId">
+    <div class="form-group"><label>标题（可选）</label><input type="text" id="formTitle" placeholder="简短描述，方便查找"></div>
+    <div class="form-group"><label>内容</label><textarea id="formContent" placeholder="粘贴文本、指令、链接等…" oninput="detectUrl()"></textarea><div class="form-hint" id="urlHint"></div></div>
+    <div class="form-group"><label>备注（可选）</label><textarea id="formNotes" placeholder="使用要求、注意事项、补充说明等…" style="min-height:60px"></textarea></div>
+    <div class="form-group">
+      <label>图片（可选）</label>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('formImage').click()">点击选择或拖拽图片，支持 Ctrl+V 粘贴</div>
+      <input type="file" id="formImage" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+      <img id="imagePreview" class="image-preview" style="display:none">
+      <button type="button" class="btn btn-secondary" id="removeImageBtn" style="display:none;font-size:12px;padding:4px 12px" onclick="removeImage()">移除图片</button>
+    </div>
+    <div class="form-group">
+      <label>附件（可选）</label>
+      <div class="drop-zone" id="fileDropZone" onclick="document.getElementById('formFileInput').click()">点击选择文件或拖拽，单个文件 ≤ 500 KB</div>
+      <input type="file" id="formFileInput" style="display:none" multiple onchange="handleFilesSelect(event)">
+      <div id="modalFilesList" class="modal-files-list"></div>
+    </div>
+    <div class="form-group">
+      <label>标签</label>
+      <div id="tagPresetSection" style="display:none"><div class="tag-section-label">常用标签</div><div class="tag-selector" id="tagPresets"></div></div>
+      <div id="tagExistingSection" style="display:none"><div class="tag-section-label">已有标签</div><div class="tag-selector" id="tagExisting"></div></div>
+      <input type="text" class="tag-custom-input" id="formTags" placeholder="输入自定义标签，空格或逗号分隔">
+      <div id="selectedTagsPreview" class="tag-selector"></div>
+    </div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveEntry()">保存</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="gistModal" onmousedown="if(event.target===this)closeGistModal()">
+  <div class="modal">
+    <h2>GitHub Gist 同步</h2>
+    <p style="font-size:13px;color:var(--ink-3);margin-bottom:20px;line-height:1.7">
+      用 GitHub Gist 在多台电脑间同步数据。前往 GitHub → Settings → Developer settings → Personal access tokens → Generate new token，勾选 <strong>gist</strong> 权限。首次推送会自动创建私有 Gist，Gist ID 自动保存。
+    </p>
+    <div class="form-group"><label>GitHub Token</label><div style="position:relative"><input type="password" id="gistToken" placeholder="ghp_xxxxxxxxxxxxxxxxxx" style="padding-right:44px"><button type="button" onclick="const i=document.getElementById('gistToken');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'显示':'隐藏'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:11px;color:var(--ink-3);cursor:pointer;font-family:inherit;padding:2px 4px">显示</button></div></div>
+    <div class="form-group"><label>Gist ID</label><input type="text" id="gistId" placeholder="首次推送后自动填入，也可填已有 Gist ID"><div class="form-hint">推送后可在 gist.github.com 查看，URL 末尾的 32 位字符串即为 ID</div></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeGistModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveGistConfig()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let activeTag=null,currentImage=null,selectedTags=new Set(),currentFiles=[];
+let cachedData={entries:[],presets:[]},fileHandle=null;
+const DEFAULT_DATA={entries:[],presets:['prompt','工具','技巧','链接','教程','API','快捷键','工作','学习']};
+function parseData(d){if(!d.entries)d.entries=[];if(!d.presets)d.presets=[];return d}
+function mergeEntries(newEntries,newPresets){
+  const ids=new Set(cachedData.entries.map(e=>e.id));
+  const unique=newEntries.filter(e=>!ids.has(e.id));
+  cachedData.entries.push(...unique);
+  cachedData.presets=[...new Set([...cachedData.presets,...newPresets])];
+  return unique.length;
+}
+
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open('MyCollectionDB',1);r.onupgradeneeded=()=>r.result.createObjectStore('handles');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function saveHandle(h){const db=await openDB();const tx=db.transaction('handles','readwrite');tx.objectStore('handles').put(h,'dataFile');return new Promise(r=>{tx.oncomplete=r})}
+async function loadHandle(){try{const db=await openDB();const tx=db.transaction('handles','readonly');const r=tx.objectStore('handles').get('dataFile');return new Promise(r2=>{r.onsuccess=()=>r2(r.result||null)})}catch{return null}}
+
+async function loadData(){
+  if(fileHandle){try{const f=await fileHandle.getFile();cachedData=parseData(JSON.parse(await f.text()));return}catch{}}
+  fileHandle=await loadHandle();
+  if(fileHandle){try{if((await fileHandle.queryPermission({mode:'readwrite'}))!=='granted'){if((await fileHandle.requestPermission({mode:'readwrite'}))!=='granted')fileHandle=null}if(fileHandle){const f=await fileHandle.getFile();cachedData=parseData(JSON.parse(await f.text()));updateFileTag();return}}catch{fileHandle=null}}
+  cachedData={...DEFAULT_DATA};updateFileTag();
+}
+async function saveData(skipDirty=false){
+  if(fileHandle){try{const w=await fileHandle.createWritable();await w.write(JSON.stringify(cachedData,null,2));await w.close()}catch(e){console.error('Save failed:',e)}}
+  if(!skipDirty&&gistConfig.token){_dirty=true;const el=document.getElementById('syncStatus');el.className='sync-status dirty';el.textContent='↑ 点击同步';if(gistConfig.gistId){clearTimeout(_autoPushTimer);_autoPushTimer=setTimeout(()=>syncToCloud(true),90000)}}
+}
+
+async function chooseFile(){
+  try{const[h]=await window.showOpenFilePicker({types:[{description:'JSON 文件',accept:{'application/json':['.json']}}]});fileHandle=h}catch{return}
+  await saveHandle(fileHandle);
+  try{const f=await fileHandle.getFile();const t=await f.text();if(t.trim())cachedData=parseData(JSON.parse(t))}catch{}
+  await saveData();updateFileTag();renderEntries();
+}
+function updateFileTag(){const el=document.getElementById('fileTag');if(fileHandle){el.textContent=fileHandle.name;el.className='file-tag';el.title='点击切换数据文件'}else if(gistConfig.token){el.textContent='云端模式';el.className='file-tag cloud-mode';el.title='当前通过 Gist 同步，点击绑定本地文件'}else{el.textContent='选择数据文件';el.className='file-tag missing';el.title='点击选择本地 JSON 文件'}}
+
+function getEntries(){return cachedData.entries}
+function getPresetTags(){return cachedData.presets.length?cachedData.presets:[...DEFAULT_DATA.presets]}
+function getAllUsedTags(){const s=new Set();cachedData.entries.forEach(e=>e.tags.forEach(t=>s.add(t)));return[...s]}
+
+function toggleMenu(e){e.stopPropagation();document.getElementById('menu').classList.toggle('open')}
+function closeMenu(){document.getElementById('menu').classList.remove('open')}
+document.addEventListener('click',e=>{if(!e.target.closest('.menu-wrap'))closeMenu()});
+
+function renderTagSelector(editingTags){
+  selectedTags=new Set(editingTags||[]);
+  const presets=getPresetTags(),used=getAllUsedTags(),existing=used.filter(t=>!presets.includes(t));
+  const ps=document.getElementById('tagPresetSection'),pc=document.getElementById('tagPresets');
+  if(presets.length){ps.style.display='';pc.innerHTML=presets.map(t=>`<span class="tag-chip${selectedTags.has(t)?' selected':''}" onclick="toggleTagSelect(this,'${esc(t)}')">${esc(t)}</span>`).join('')}else ps.style.display='none';
+  const es=document.getElementById('tagExistingSection'),ec=document.getElementById('tagExisting');
+  if(existing.length){es.style.display='';ec.innerHTML=existing.map(t=>`<span class="tag-chip${selectedTags.has(t)?' selected':''}" onclick="toggleTagSelect(this,'${esc(t)}')">${esc(t)}</span>`).join('')}else es.style.display='none';
+  updateSelectedPreview();
+}
+function toggleTagSelect(el,tag){if(selectedTags.has(tag)){selectedTags.delete(tag);el.classList.remove('selected')}else{selectedTags.add(tag);el.classList.add('selected')}updateSelectedPreview()}
+function updateSelectedPreview(){const c=document.getElementById('selectedTagsPreview');c.innerHTML=selectedTags.size?[...selectedTags].map(t=>`<span class="tag-chip selected" style="cursor:pointer" onclick="removeSelectedTag('${esc(t)}')">${esc(t)} ✕</span>`).join(''):''}
+function removeSelectedTag(tag){selectedTags.delete(tag);document.querySelectorAll('#tagPresets .tag-chip,#tagExisting .tag-chip').forEach(el=>{if(el.textContent.trim()===tag)el.classList.remove('selected')});updateSelectedPreview()}
+
+function renderMd(raw){
+  const blocks=[];
+  let s=esc(raw);
+  s=s.replace(/```(?:[^\n]*\n)?([\s\S]*?)```/g,(_,code)=>{blocks.push(`<pre class="md-pre"><code>${code.trim()}</code></pre>`);return`\x00${blocks.length-1}\x00`});
+  s=s.replace(/`([^`\n]+)`/g,(_,c)=>{blocks.push(`<code class="inline-code">${c}</code>`);return`\x00${blocks.length-1}\x00`});
+  s=s.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<em>$1</em>');
+  s=s.replace(/(https?:\/\/[^\s<"]+)/g,'<a href="$1" target="_blank" onclick="event.stopPropagation()">$1</a>');
+  s=s.replace(/^[-*] (.+)$/gm,'<li>$1</li>');
+  s=s.replace(/\x00(\d+)\x00/g,(_,i)=>blocks[+i]);
+  return s;
+}
+
+function renderEntries(){
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  let entries=getEntries();
+  if(activeTag)entries=entries.filter(e=>e.tags.includes(activeTag));
+  if(q)entries=entries.filter(e=>(e.title||'').toLowerCase().includes(q)||e.content.toLowerCase().includes(q)||e.tags.some(t=>t.toLowerCase().includes(q)));
+  entries.sort((a,b)=>{if(a.pinned!==b.pinned)return b.pinned?1:-1;return b.updatedAt-a.updatedAt});
+  if(quickFilter==='pinned')entries=entries.filter(e=>e.pinned);
+  else if(quickFilter==='images')entries=entries.filter(e=>e.image);
+  else if(quickFilter==='recent'){const w=Date.now()-7*24*60*60*1000;entries=entries.filter(e=>e.updatedAt>w)}
+  const all=getEntries();
+  const usedTags=getAllUsedTags();
+
+  renderSidebarContent(all);
+  renderTags(all);
+
+  const filterLabel=quickFilter!=='all'?{pinned:'置顶',images:'含图片',recent:'最近7天'}[quickFilter]:(activeTag||'');
+  document.getElementById('statsBar').innerHTML=`
+    <div class="stats">${entries.length!==all.length?`${entries.length} / ${all.length} 条`:`共 ${all.length} 条`}${filterLabel?` · ${filterLabel}`:''}</div>
+    <div class="stats-right">
+      <button class="btn-ghost" style="font-size:11px;padding:3px 8px" onclick="toggleViewMode()">${viewMode==='list'?'⊞ 网格':'☰ 列表'}</button>
+      ${all.length?`<button class="btn-ghost" style="font-size:11px;padding:3px 8px" onclick="${bulkMode?'exitBulkMode':'enterBulkMode'}()">${bulkMode?'退出选择':'选择'}</button>`:''}
+    </div>`;
+
+  const c=document.getElementById('entries');
+  c.className=`entries${viewMode==='grid'?' grid':''}${bulkMode?' bulk-mode':''}`;
+  if(!entries.length){
+    c.innerHTML=`<div class="empty"><div class="empty-icon">${all.length?'⊘':'✦'}</div><p>${all.length?'没有匹配的结果':'还没有收藏，点击右上角「+ 新增」开始'}</p></div>`;
+    return;
+  }
+  c.innerHTML=entries.map((e,i)=>{
+    const d=new Date(e.updatedAt).toLocaleDateString('zh-CN',{month:'short',day:'numeric'});
+    const ch=renderMd(e.content);
+    const ih=e.image?`<img class="entry-image" src="${e.image}" onclick="event.stopPropagation()">`:'';
+    const fh=(e.files&&e.files.length)?`<div class="entry-files">${e.files.map(f=>`<span class="file-chip" onclick="event.stopPropagation();downloadEntryFile('${e.id}','${f.id}')" title="${esc(f.name)}">📎 <span class="file-chip-name">${esc(f.name)}</span><span style="font-size:9px;color:var(--ink-4);margin-left:3px">${formatFileSize(f.size)}</span></span>`).join('')}</div>`:'';
+    const nh=e.notes?`<div class="entry-notes">${esc(e.notes)}</div>`:'';
+    const th=e.tags.map(t=>`<span class="tag-chip">${esc(t)}</span>`).join('');
+    const sel=bulkMode&&selectedIds.has(e.id);
+    return`<div class="entry${e.pinned?' pinned':''}${sel?' selected':''}" style="animation-delay:${Math.min(i*40,200)}ms" data-id="${e.id}" onclick="if(bulkMode)toggleSelect('${e.id}')">${bulkMode?`<input type="checkbox" class="entry-cb" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelect('${e.id}')">`:''}<div class="entry-header"><span class="entry-title">${esc(e.title||'无标题')}</span><span class="entry-meta">${d}</span></div>${ch?`<div class="entry-content" onclick="if(bulkMode)toggleSelect('${e.id}');else this.classList.toggle('expanded')">${ch}</div>`:''}${nh}${ih}${fh}${th?`<div class="entry-tags">${th}</div>`:''}<div class="entry-actions"><button class="btn-ghost copy-btn" onclick="event.stopPropagation();copyContent('${e.id}',this)">复制</button><button class="btn-ghost pin-btn${e.pinned?' active':''}" onclick="event.stopPropagation();togglePin('${e.id}')">${e.pinned?'★':'☆'}</button><button class="btn-ghost" onclick="event.stopPropagation();editEntry('${e.id}')">编辑</button><button class="btn-ghost" style="color:var(--danger)" onclick="event.stopPropagation();delEntry('${e.id}')">删除</button></div></div>`
+  }).join('');
+}
+function renderTags(entries){const tc={};entries.forEach(e=>e.tags.forEach(t=>{tc[t]=(tc[t]||0)+1}));const ts=Object.entries(tc).sort((a,b)=>b[1]-a[1]);const el=document.getElementById('tagsBar');el.innerHTML=ts.map(([t,n])=>`<span class="tag-chip${activeTag===t?' active':''}" onclick="toggleTag('${esc(t)}')">${esc(t)}<span class="tag-count">${n}</span></span>`).join('');document.getElementById('sidebarTagsSection').style.display=ts.length?'':'none'}
+function toggleTag(t){activeTag=activeTag===t?null:t;renderEntries()}
+
+let bulkMode=false,selectedIds=new Set();
+let viewMode='list',quickFilter='all';
+let _dirty=false,_autoPushTimer=null;
+function toggleViewMode(){viewMode=viewMode==='list'?'grid':'list';renderEntries()}
+function setQuickFilter(f){quickFilter=quickFilter===f&&f!=='all'?'all':f;renderEntries()}
+
+function renderSidebarContent(all){
+  const w7=Date.now()-7*24*60*60*1000;
+  const pinnedN=all.filter(e=>e.pinned).length;
+  const imagesN=all.filter(e=>e.image).length;
+  const recentN=all.filter(e=>e.updatedAt>w7).length;
+  const usedTags=getAllUsedTags();
+  const qf=quickFilter;
+  document.getElementById('sidebarQuickFilters').innerHTML=
+    `<button class="sidebar-filter${qf==='all'&&!activeTag?' active':''}" onclick="setQuickFilter('all')">全部<span class="tag-count">${all.length}</span></button>`+
+    (pinnedN?`<button class="sidebar-filter${qf==='pinned'?' active':''}" onclick="setQuickFilter('pinned')">置顶<span class="tag-count">${pinnedN}</span></button>`:'')+
+    (imagesN?`<button class="sidebar-filter${qf==='images'?' active':''}" onclick="setQuickFilter('images')">含图片<span class="tag-count">${imagesN}</span></button>`:'')+
+    (recentN?`<button class="sidebar-filter${qf==='recent'?' active':''}" onclick="setQuickFilter('recent')">最近7天<span class="tag-count">${recentN}</span></button>`:'');
+  document.getElementById('sidebarStats').innerHTML=all.length?
+    `<div class="sidebar-divider"></div><div class="sidebar-stat-row"><span>条目总数</span><span>${all.length}</span></div><div class="sidebar-stat-row"><span>标签数</span><span>${usedTags.length}</span></div>`:'';
+}
+function enterBulkMode(){bulkMode=true;selectedIds.clear();renderEntries();updateBulkBar()}
+function exitBulkMode(){bulkMode=false;selectedIds.clear();renderEntries();document.getElementById('bulkBar').classList.remove('show')}
+function toggleSelect(id){if(selectedIds.has(id))selectedIds.delete(id);else selectedIds.add(id);updateBulkBar();const el=document.querySelector(`.entry[data-id="${id}"]`);if(el){el.classList.toggle('selected',selectedIds.has(id));const cb=el.querySelector('.entry-cb');if(cb)cb.checked=selectedIds.has(id)}}
+function updateBulkBar(){const n=selectedIds.size;const bar=document.getElementById('bulkBar');bar.classList.toggle('show',bulkMode);document.getElementById('bulkCount').textContent=`已选 ${n} 条`;bar.querySelectorAll('.bulk-bar-btn:not(:last-child)').forEach(b=>b.disabled=n===0)}
+let _microConfirmResolve=null;
+function showConfirm(msg,btnText='确认'){
+  return new Promise(res=>{
+    _microConfirmResolve=v=>{document.getElementById('microConfirmModal').classList.remove('open');_microConfirmResolve=null;res(v)};
+    document.getElementById('microConfirmMsg').textContent=msg;
+    document.getElementById('microConfirmOkBtn').textContent=btnText;
+    document.getElementById('microConfirmModal').classList.add('open');
+  });
+}
+let _microTagResolve=null,_microTagToAdd=new Set(),_microTagToRemove=new Set(),_microTagOrigState={};
+function showTagEditor(selectedCount,selectedEntries){
+  return new Promise(res=>{
+    _microTagResolve=v=>{document.getElementById('microTagModal').classList.remove('open');_microTagResolve=null;res(v)};
+    document.getElementById('microTagTitle').textContent=`编辑 ${selectedCount} 条记录的标签`;
+    document.getElementById('microTagHint').textContent='点击切换：绿色✓=将添加  红色删除线=将移除  虚线边=部分记录有';
+    document.getElementById('microTagInput').value='';
+    _microTagOrigState={};
+    const tagCounts={};
+    selectedEntries.forEach(e=>e.tags.forEach(t=>{tagCounts[t]=(tagCounts[t]||0)+1}));
+    Object.keys(tagCounts).forEach(t=>{_microTagOrigState[t]=tagCounts[t]===selectedCount?'all':'some'});
+    [...new Set([...getPresetTags(),...getAllUsedTags()])].forEach(t=>{if(!_microTagOrigState[t])_microTagOrigState[t]='none'});
+    _microTagToAdd=new Set();_microTagToRemove=new Set();
+    _microTagRenderChips();
+    document.getElementById('microTagModal').classList.add('open');
+    setTimeout(()=>document.getElementById('microTagInput').focus(),50);
+  });
+}
+function _microTagRenderChips(){
+  document.getElementById('microTagChips').innerHTML=Object.keys(_microTagOrigState).map(t=>{
+    let cls='tag-chip',title='';
+    if(_microTagToAdd.has(t)){cls='tag-chip chip-add';title='将添加到全部'}
+    else if(_microTagToRemove.has(t)){cls='tag-chip chip-remove';title='将从记录中移除'}
+    else if(_microTagOrigState[t]==='all'){cls='tag-chip chip-all';title='全部记录已有（点击移除）'}
+    else if(_microTagOrigState[t]==='some'){cls='tag-chip chip-partial';title='部分记录有（点击添加到全部）'}
+    return `<span class="${cls}" title="${title}" onclick="_microTagToggle('${esc(t)}')" style="cursor:pointer">${esc(t)}</span>`;
+  }).join('');
+}
+function _microTagToggle(tag){
+  const orig=_microTagOrigState[tag];
+  if(_microTagToAdd.has(tag)){_microTagToAdd.delete(tag)}
+  else if(_microTagToRemove.has(tag)){_microTagToRemove.delete(tag)}
+  else if(orig==='all'){_microTagToRemove.add(tag)}
+  else{_microTagToAdd.add(tag)}
+  _microTagRenderChips();
+}
+function _microTagAddNew(){
+  const v=document.getElementById('microTagInput').value.trim();if(!v)return;
+  if(!_microTagOrigState[v]){_microTagOrigState[v]='none'}
+  _microTagToAdd.add(v);_microTagToRemove.delete(v);
+  document.getElementById('microTagInput').value='';
+  _microTagRenderChips();
+}
+function _microTagCancel(){if(_microTagResolve)_microTagResolve(null)}
+function _microTagConfirm(){if(_microTagResolve)_microTagResolve({add:[..._microTagToAdd],remove:[..._microTagToRemove]})}
+
+async function bulkDelete(){
+  const n=selectedIds.size;if(!n)return;
+  const ok=await showConfirm(`确定删除选中的 ${n} 条记录？此操作不可撤销。`,'删除');
+  if(!ok)return;
+  cachedData.entries=cachedData.entries.filter(e=>!selectedIds.has(e.id));
+  await saveData();exitBulkMode();showToast(`已删除 ${n} 条`);
+}
+async function bulkTag(){
+  const n=selectedIds.size;if(!n)return;
+  const selected=cachedData.entries.filter(e=>selectedIds.has(e.id));
+  const result=await showTagEditor(n,selected);
+  if(!result)return;
+  const {add,remove}=result,now=Date.now();
+  cachedData.entries.forEach(e=>{
+    if(!selectedIds.has(e.id))return;
+    let changed=false;
+    add.forEach(t=>{if(!e.tags.includes(t)){e.tags.push(t);changed=true}});
+    remove.forEach(t=>{const i=e.tags.indexOf(t);if(i>=0){e.tags.splice(i,1);changed=true}});
+    if(changed)e.updatedAt=now;
+  });
+  add.forEach(t=>{if(!cachedData.presets.includes(t))cachedData.presets.push(t)});
+  await saveData();exitBulkMode();
+  const parts=[];if(add.length)parts.push(`添加「${add.join('、')}」`);if(remove.length)parts.push(`移除「${remove.join('、')}」`);
+  if(parts.length)showToast(`已为 ${n} 条记录${parts.join('，')}`);
+}
+
+function openModal(entry){
+  document.getElementById('modalTitle').textContent=entry?'编辑收藏':'新增收藏';
+  document.getElementById('editId').value=entry?entry.id:'';
+  document.getElementById('formTitle').value=entry?(entry.title||''):'';
+  document.getElementById('formContent').value=entry?entry.content:'';
+  document.getElementById('formNotes').value=entry?(entry.notes||''):'';
+  document.getElementById('formTags').value='';document.getElementById('urlHint').textContent='';
+  currentImage=entry?(entry.image||null):null;updateImagePreview();
+  currentFiles=entry?(entry.files?[...entry.files]:[]):[];renderModalFiles();
+  renderTagSelector(entry?entry.tags:[]);
+  document.getElementById('modal').classList.add('open');document.getElementById('formContent').focus();
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');currentImage=null;currentFiles=[]}
+
+async function saveEntry(){
+  const content=document.getElementById('formContent').value.trim(),title=document.getElementById('formTitle').value.trim();
+  const notes=document.getElementById('formNotes').value.trim();
+  const textTags=document.getElementById('formTags').value.trim().split(/[\s,，]+/).filter(Boolean);
+  const allTags=[...new Set([...selectedTags,...textTags])],editId=document.getElementById('editId').value;
+  if(!content&&!currentImage&&!currentFiles.length){showToast('请填写内容或添加图片/附件',true);return}
+  const entries=getEntries(),now=Date.now();
+  if(editId){const i=entries.findIndex(e=>e.id===editId);if(i>=0)entries[i]={...entries[i],title,content,notes,tags:allTags,image:currentImage,files:currentFiles,updatedAt:now}}
+  else entries.push({id:genId(),title,content,notes,tags:allTags,image:currentImage,files:currentFiles,pinned:false,createdAt:now,updatedAt:now});
+  if(textTags.length){const p=getPresetTags(),n=textTags.filter(t=>!p.includes(t));if(n.length)cachedData.presets=[...p,...n]}
+  await saveData();closeModal();renderEntries();
+}
+function editEntry(id){const e=cachedData.entries.find(e=>e.id===id);if(e)openModal(e)}
+async function delEntry(id){if(!await showConfirm('确定删除这条记录？此操作不可撤销。','删除'))return;cachedData.entries=cachedData.entries.filter(e=>e.id!==id);await saveData();renderEntries()}
+
+function handleImageSelect(e){const f=e.target.files[0];if(f)readImageFile(f);e.target.value=''}
+function readImageFile(file){if(!file.type.startsWith('image/'))return;const r=new FileReader();r.onload=async()=>{currentImage=await compressImage(r.result);updateImagePreview()};r.readAsDataURL(file)}
+function compressImage(dataUrl,maxPx=900,quality=0.72){return new Promise(res=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;if(w>maxPx||h>maxPx){if(w>h){h=Math.round(h*maxPx/w);w=maxPx}else{w=Math.round(w*maxPx/h);h=maxPx}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);res(c.toDataURL('image/jpeg',quality))};img.src=dataUrl})}
+function updateImagePreview(){const p=document.getElementById('imagePreview'),b=document.getElementById('removeImageBtn');if(currentImage){p.src=currentImage;p.style.display='block';b.style.display='inline-block'}else{p.style.display='none';b.style.display='none'}}
+function removeImage(){currentImage=null;updateImagePreview()}
+const MAX_FILE_SIZE=500*1024;
+function handleFilesSelect(e){[...e.target.files].forEach(readAttachFile);e.target.value=''}
+function readAttachFile(file){
+  if(file.size>MAX_FILE_SIZE){showToast(`「${file.name}」超过 500 KB 限制，已跳过`,true);return}
+  const r=new FileReader();
+  r.onload=()=>{currentFiles.push({id:genId(),name:file.name,type:file.type,size:file.size,data:r.result});renderModalFiles()};
+  r.readAsDataURL(file);
+}
+function removeFile(id){currentFiles=currentFiles.filter(f=>f.id!==id);renderModalFiles()}
+function renderModalFiles(){
+  const el=document.getElementById('modalFilesList');
+  el.innerHTML=currentFiles.map(f=>`<div class="modal-file-item"><span class="mfi-name" title="${esc(f.name)}">📎 ${esc(f.name)}</span><span class="mfi-size">${formatFileSize(f.size)}</span><button type="button" class="btn-ghost" style="font-size:11px;padding:2px 6px;color:var(--danger);flex-shrink:0" onclick="removeFile('${f.id}')">移除</button></div>`).join('');
+}
+function formatFileSize(bytes){if(bytes<1024)return bytes+' B';if(bytes<1024*1024)return(bytes/1024).toFixed(1)+' KB';return(bytes/1024/1024).toFixed(1)+' MB'}
+function downloadEntryFile(entryId,fileId){
+  const entry=cachedData.entries.find(e=>e.id===entryId);if(!entry)return;
+  const file=(entry.files||[]).find(f=>f.id===fileId);if(!file)return;
+  const a=document.createElement('a');a.href=file.data;a.download=file.name;a.click();
+}
+const dropZone=document.getElementById('dropZone');
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{e.preventDefault();dropZone.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)readImageFile(f)});
+const fileDropZone=document.getElementById('fileDropZone');
+fileDropZone.addEventListener('dragover',e=>{e.preventDefault();fileDropZone.classList.add('dragover')});
+fileDropZone.addEventListener('dragleave',()=>fileDropZone.classList.remove('dragover'));
+fileDropZone.addEventListener('drop',e=>{e.preventDefault();fileDropZone.classList.remove('dragover');[...e.dataTransfer.files].forEach(readAttachFile)});
+document.getElementById('modal').addEventListener('paste',e=>{const items=e.clipboardData?.items;if(!items)return;for(const i of items)if(i.type.startsWith('image/')){e.preventDefault();readImageFile(i.getAsFile());break}});
+let _lastUrl='';
+function detectUrl(){
+  const urls=document.getElementById('formContent').value.match(/https?:\/\/[^\s]+/g);
+  const hint=document.getElementById('urlHint');
+  _lastUrl=urls?urls[0]:'';
+  if(urls){const hasTitle=document.getElementById('formTitle').value.trim();hint.innerHTML=`检测到 ${urls.length} 个链接${!hasTitle?' · <button class="btn-ghost" style="font-size:11px;padding:2px 8px" onclick="doFetchTitle()">抓取标题</button>':''}`}
+  else hint.textContent='';
+}
+async function doFetchTitle(){
+  if(!_lastUrl)return;
+  const hint=document.getElementById('urlHint');
+  hint.textContent='抓取中…';
+  const title=await fetchUrlTitle(_lastUrl);
+  if(title){document.getElementById('formTitle').value=title;hint.textContent='标题已填入 ✓'}
+  else hint.textContent='抓取失败，请手动填写';
+}
+async function fetchUrlTitle(url){
+  try{
+    const r=await Promise.race([
+      fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000))
+    ]);
+    if(!r.ok)return null;
+    const d=await r.json();
+    const m=d.contents?.match(/<title[^>]*>([^<]+)<\/title>/i);
+    return m?m[1].trim().replace(/\s+/g,' ').slice(0,120):null;
+  }catch{return null}
+}
+
+function exportData(){const b=new Blob([JSON.stringify(cachedData,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`mycollection_${new Date().toISOString().slice(0,10)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+async function importData(e){const f=e.target.files[0];if(!f)return;try{const t=await f.text(),d=JSON.parse(t),entries=Array.isArray(d)?d:(d.entries||[]),presets=d.presets||[];const count=mergeEntries(entries,presets);await saveData();renderEntries();showToast(`导入 ${count} 条 ✓`)}catch{showToast('导入失败，请检查文件格式',true)}e.target.value=''}
+
+function copyContent(id,btn){const e=cachedData.entries.find(e=>e.id===id);if(!e)return;navigator.clipboard.writeText(e.content).then(()=>{btn.textContent='已复制 ✓';btn.classList.add('copied');setTimeout(()=>{btn.textContent='复制';btn.classList.remove('copied')},1500)})}
+async function togglePin(id){const e=cachedData.entries.find(e=>e.id===id);if(!e)return;e.pinned=!e.pinned;e.updatedAt=Date.now();await saveData();renderEntries()}
+
+function quickCaptureKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();quickSave()}}
+async function quickSave(){const i=document.getElementById('quickInput'),c=i.value.trim();if(!c)return;cachedData.entries.push({id:genId(),title:'',content:c,tags:[],image:null,pinned:false,createdAt:Date.now(),updatedAt:Date.now()});await saveData();i.value='';i.style.height='48px';renderEntries()}
+
+function toggleTheme(){const d=document.documentElement.classList.toggle('dark');localStorage.setItem('mycollection_theme',d?'dark':'light');document.getElementById('themeText').textContent=d?'切换亮色':'切换暗色'}
+function initTheme(){const s=localStorage.getItem('mycollection_theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(s==='dark'||(!s&&p)){document.documentElement.classList.add('dark');document.getElementById('themeText').textContent='切换亮色'}}
+
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(document.getElementById('modal').classList.contains('open'))closeModal();
+    else if(document.getElementById('gistModal').classList.contains('open'))closeGistModal();
+    else if(document.getElementById('microConfirmModal').classList.contains('open'))_microConfirmResolve&&_microConfirmResolve(false);
+    else if(document.getElementById('microTagModal').classList.contains('open'))_microTagResolve&&_microTagResolve(null);
+    else document.activeElement.blur();
+  }
+  if((e.ctrlKey||e.metaKey)&&e.key==='n'){e.preventDefault();openModal()}
+  if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){e.preventDefault();document.getElementById('searchInput').focus()}
+});
+
+async function migrateFromLocal(){
+  let oe=[],op=[];try{oe=JSON.parse(localStorage.getItem('mycollection_entries'))||[]}catch{}try{op=JSON.parse(localStorage.getItem('mycollection_presets'))||[]}catch{}
+  if(!oe.length&&!op.length)return;
+  if(!await showConfirm(`检测到旧版缓存：${oe.length} 条收藏，是否导入到当前数据？`,'导入'))return;
+  const count=mergeEntries(oe,op);
+  await saveData();renderEntries();localStorage.removeItem('mycollection_entries');localStorage.removeItem('mycollection_presets');
+  showToast(`迁移完成：导入 ${count} 条 ✓`);
+}
+
+/* ===== GitHub Gist Cloud Sync ===== */
+let gistConfig={token:'',gistId:''};
+
+async function saveGistCfg(cfg){const db=await openDB();const tx=db.transaction('handles','readwrite');tx.objectStore('handles').put(cfg,'gistConfig');return new Promise(r=>{tx.oncomplete=r})}
+async function loadGistCfg(){try{const db=await openDB();const tx=db.transaction('handles','readonly');const r=tx.objectStore('handles').get('gistConfig');return new Promise(r2=>{r.onsuccess=()=>r2(r.result||null)})}catch{return null}}
+
+function openGistModal(){
+  document.getElementById('gistToken').value=gistConfig.token||'';
+  document.getElementById('gistId').value=gistConfig.gistId||'';
+  document.getElementById('gistModal').classList.add('open');
+}
+function closeGistModal(){document.getElementById('gistModal').classList.remove('open')}
+
+async function saveGistConfig(){
+  gistConfig={token:document.getElementById('gistToken').value.trim(),gistId:document.getElementById('gistId').value.trim()};
+  await saveGistCfg(gistConfig);
+  closeGistModal();
+  showToast('同步配置已保存');
+}
+
+function showToast(msg,isError){
+  let t=document.querySelector('.sync-toast');
+  if(!t){t=document.createElement('div');t.className='sync-toast';document.body.appendChild(t)}
+  t.textContent=msg;t.className='sync-toast'+(isError?' error':'')+' show';
+  clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),isError?4000:2500);
+}
+
+function refreshSyncStatus(){
+  const el=document.getElementById('syncStatus');
+  if(!gistConfig.token){el.textContent='';el.style.color='';return}
+  if(_dirty){el.textContent='● 有未同步更改';el.style.color='var(--accent)';return}
+  el.style.color='';
+  if(!gistConfig.gistId){el.textContent='';return}
+  const t=parseInt(localStorage.getItem('mycollection_last_sync')||'0');
+  if(!t){el.textContent='';return}
+  const mins=Math.round((Date.now()-t)/60000);
+  if(mins<1)el.textContent='↑↓ 刚刚';
+  else if(mins<60)el.textContent=`↑↓ ${mins}分前`;
+  else el.textContent=`↑↓ ${Math.round(mins/60)}h前`;
+}
+function markSynced(){_dirty=false;clearTimeout(_autoPushTimer);_autoPushTimer=null;const el=document.getElementById('syncStatus');el.classList.remove('dirty');el.style.color='';localStorage.setItem('mycollection_last_sync',Date.now());refreshSyncStatus()}
+
+async function syncToCloud(quiet=false){
+  if(!gistConfig.token){if(!quiet)openGistModal();return}
+  const el=document.getElementById('syncStatus');
+  el.textContent='同步中…';el.classList.add('syncing');
+  if(!quiet)showToast('正在同步到 GitHub…');
+  try{
+    const content=JSON.stringify(cachedData,null,2);
+    const payload={files:{'mycollection.json':{content}}};
+    let url,method;
+    if(gistConfig.gistId){url=`https://api.github.com/gists/${gistConfig.gistId}`;method='PATCH'}
+    else{url='https://api.github.com/gists';method='POST';payload.description='MyCollection data';payload.public=false}
+    const r=await fetch(url,{method,headers:{Authorization:`token ${gistConfig.token}`,'Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'},body:JSON.stringify(payload)});
+    if(!r.ok){el.classList.remove('syncing');refreshSyncStatus();if(!quiet)showToast('同步失败：HTTP '+r.status,true);else _autoPushTimer=setTimeout(()=>syncToCloud(true),60000);return}
+    const data=await r.json();
+    if(!gistConfig.gistId){gistConfig.gistId=data.id;await saveGistCfg(gistConfig);updateFileTag()}
+    el.classList.remove('syncing');markSynced();if(!quiet)showToast('已同步到 GitHub ✓');
+  }catch(e){el.classList.remove('syncing');refreshSyncStatus();if(!quiet)showToast('同步失败：'+e.message,true);else _autoPushTimer=setTimeout(()=>syncToCloud(true),60000)}
+}
+
+async function syncFromCloud(quiet=false){
+  if(!gistConfig.token||!gistConfig.gistId){if(!quiet)openGistModal();return}
+  if(!quiet&&_dirty){const go=await showConfirm('本地有未同步的更改，拉取后会以修改时间较新的版本为准，确定继续？','继续拉取');if(!go)return}
+  const el=document.getElementById('syncStatus');
+  el.textContent='同步中…';el.classList.add('syncing');
+  if(!quiet)showToast('正在从 GitHub 同步…');
+  try{
+    const r=await fetch(`https://api.github.com/gists/${gistConfig.gistId}`,{headers:{Authorization:`token ${gistConfig.token}`,'X-GitHub-Api-Version':'2022-11-28'}});
+    if(r.status===404){el.classList.remove('syncing');refreshSyncStatus();showToast('Gist 不存在，请先同步到云端',true);return}
+    if(!r.ok){el.classList.remove('syncing');refreshSyncStatus();showToast('同步失败：HTTP '+r.status,true);return}
+    const data=await r.json();
+    const file=data.files['mycollection.json'];
+    if(!file){el.classList.remove('syncing');refreshSyncStatus();showToast('Gist 中无 mycollection.json',true);return}
+    let text=file.content;
+    if(file.truncated){const raw=await fetch(file.raw_url);text=await raw.text()}
+    const remote=parseData(JSON.parse(text));
+    const localIds=new Set(cachedData.entries.map(e=>e.id));
+    const newEntries=remote.entries.filter(e=>!localIds.has(e.id));
+    let updatedCount=0;
+    remote.entries.forEach(re=>{const li=cachedData.entries.findIndex(le=>le.id===re.id);if(li>=0&&re.updatedAt>cachedData.entries[li].updatedAt){cachedData.entries[li]=re;updatedCount++}});
+    cachedData.entries.push(...newEntries);
+    cachedData.presets=[...new Set([...cachedData.presets,...(remote.presets||[])])];
+    await saveData(true);renderEntries();
+    el.classList.remove('syncing');
+    if(_dirty){localStorage.setItem('mycollection_last_sync',Date.now())}
+    else{markSynced()}
+    const changed=newEntries.length+updatedCount;
+    if(changed>0||!quiet)showToast(`同步完成：${newEntries.length} 条新增，${updatedCount} 条更新 ✓`);
+  }catch(e){el.classList.remove('syncing');refreshSyncStatus();showToast('同步失败：'+e.message,true)}
+}
+
+window.addEventListener('beforeunload',e=>{if(_dirty&&gistConfig.token){e.preventDefault();e.returnValue=''}});
+setInterval(()=>{if(!_dirty)refreshSyncStatus()},60000);
+initTheme();
+Promise.all([
+  loadData(),
+  loadGistCfg().then(cfg=>{if(cfg)gistConfig=cfg})
+]).then(()=>{
+  updateFileTag();renderEntries();
+  migrateFromLocal();
+  refreshSyncStatus();
+  if(gistConfig.token&&gistConfig.gistId)syncFromCloud(true);
+});
+</script>
+<div class="modal-overlay" id="microConfirmModal" onmousedown="if(event.target===this)_microConfirmResolve&&_microConfirmResolve(false)">
+  <div class="modal" style="max-width:340px">
+    <p id="microConfirmMsg" style="font-size:15px;color:var(--ink);line-height:1.6;margin-bottom:28px"></p>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="_microConfirmResolve&&_microConfirmResolve(false)">取消</button>
+      <button class="btn btn-primary" id="microConfirmOkBtn" onclick="_microConfirmResolve&&_microConfirmResolve(true)" style="background:var(--danger)">删除</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="microTagModal" onmousedown="if(event.target===this)_microTagCancel()">
+  <div class="modal" style="max-width:420px">
+    <h2 id="microTagTitle" style="font-size:18px;margin-bottom:4px">编辑标签</h2>
+    <p id="microTagHint" style="font-size:11px;color:var(--ink-2);margin-bottom:14px"></p>
+    <div class="form-group" style="margin-bottom:14px">
+      <div class="tag-selector" id="microTagChips" style="min-height:32px"></div>
+    </div>
+    <div class="form-group" style="display:flex;gap:6px;align-items:center;margin-bottom:0">
+      <input type="text" id="microTagInput" placeholder="输入新标签名，回车添加" onkeydown="if(event.key==='Enter'){event.preventDefault();_microTagAddNew()}" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;outline:none;font-family:inherit;background:var(--surface-2);color:var(--ink)">
+      <button class="btn btn-secondary" style="padding:8px 12px;font-size:12px;white-space:nowrap" onclick="_microTagAddNew()">添加</button>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="_microTagCancel()">取消</button>
+      <button class="btn btn-primary" onclick="_microTagConfirm()">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="bulk-bar" id="bulkBar">
+  <span id="bulkCount">已选 0 条</span>
+  <button class="bulk-bar-btn" onclick="bulkTag()">打标签</button>
+  <button class="bulk-bar-btn danger" onclick="bulkDelete()">删除</button>
+  <button class="bulk-bar-btn" onclick="exitBulkMode()">取消</button>
+</div>
+</body>
+</html>
