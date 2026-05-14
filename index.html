@@ -241,6 +241,7 @@ body{
 .copy-btn.copied{color:#5a9a5a!important}
 
 @keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sheetUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
 
 .empty{text-align:center;padding:80px 20px}
 .empty-icon{font-size:40px;margin-bottom:16px;opacity:.15}
@@ -397,6 +398,36 @@ body{
   .sidebar-filter{display:inline-flex;width:auto;padding:4px 10px}
   .sidebar-divider,.sidebar-stat-row,.sidebar-section-label{display:none}
   .entries.grid{grid-template-columns:1fr}
+}
+
+/* Touch devices: entry actions always visible (no hover on mobile) */
+@media(hover:none){
+  .entry-actions{opacity:1;transform:translateY(0)}
+}
+
+/* Phone: ≤ 600px */
+@media(max-width:600px){
+  .container{padding:20px 14px 72px}
+  .header{margin-bottom:20px;padding-bottom:14px;flex-wrap:wrap;gap:8px}
+  .header h1{font-size:22px;letter-spacing:-.3px}
+  .header-left{gap:8px;flex-wrap:wrap}
+  .btn-add{padding:8px 16px;font-size:12px}
+  .icon-btn{padding:7px 9px}
+  .file-tag{font-size:9px;padding:2px 8px}
+  .quick-capture textarea{font-size:13px;padding:12px 62px 12px 14px}
+  .search-bar input{font-size:13px;padding:10px 14px 10px 40px}
+  .entry{padding:14px 16px}
+  .entry-title{font-size:15px}
+  .entry-content{font-size:13px}
+  .entry-actions{gap:0;flex-wrap:wrap}
+  .entry-actions .btn-ghost{padding:5px 7px;font-size:11px;min-height:32px}
+  .stats-bar{flex-wrap:wrap;gap:6px}
+  .modal-overlay{align-items:flex-end}
+  .modal{width:100%;max-width:100%;border-radius:20px 20px 0 0;padding:24px 18px 36px;animation:sheetUp .3s cubic-bezier(.23,1,.32,1);max-height:92vh}
+  .modal h2{font-size:18px;margin-bottom:18px}
+  .form-group{margin-bottom:14px}
+  .bulk-bar{width:calc(100% - 28px);border-radius:var(--rs) var(--rs) 0 0;bottom:0;transform:none;left:14px;padding:12px 14px}
+  .sync-toast{width:calc(100% - 48px);text-align:center;bottom:16px}
 }
 
 .inline-code{font-family:'JetBrains Mono',monospace;font-size:12.5px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--accent)}
